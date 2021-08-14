@@ -1,14 +1,10 @@
 # Introduction
-N/A
+This is a simple [Empire Auto Parts](https://empireap.com) digital catalog wrapper. It provides easy functionality behind the authentication, catalog listing, and account orders.
 
 # Usage
-N/A
-
-# Notes
-N/A
+TBD. See `index.php` for most updated examples.
 
 # Requirements & Dependencies
-N/A
-
-# Previews
-![preview image](https://via.placeholder.com/350x240)
+- PHP
+- cURL (Library)
+- DOMDocument

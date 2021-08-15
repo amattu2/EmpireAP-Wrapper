@@ -289,4 +289,42 @@ class EmpireAP {
     // Return
     return rtrim($query_string, '&');
   }
+
+  /**
+   * Extract HTML select option element values
+   *
+   * @param string HTML body
+   * @return array option values
+   * @throws TypeError
+   * @author Alec M. <https://amattu.com>
+   * @date 2021-08-15
+   */
+  private function extract_form_select_options(string $body) : array
+  {
+    // Disable errors
+    libxml_use_internal_errors(true);
+
+    // Load HTTP body
+    $document = new \DOMDocument();
+    $document->loadHTML($body);
+    $xp = new \DomXPath($document);
+    $options = Array();
+
+    // Find Elements
+    if ($nodes = $xp->query("//select/option"))
+      foreach ($nodes as $node) {
+        // Checks
+        if (!$node || !$node->getAttribute("value"))
+          continue;
+
+        // Push value
+        $options[] = Array(
+          "text" => $node->nodeValue,
+          "value" => $node->getAttribute("value")
+        );
+      }
+
+    // Default
+    return $options;
+  }
 }

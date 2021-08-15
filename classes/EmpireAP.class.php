@@ -60,7 +60,7 @@ class EmpireAP {
    * Not inherently required
    *
    * @return bool login success
-   * @throws
+   * @throws None
    * @author Alec M. <https://amattu.com>
    * @date 2021-08-14
    */
@@ -71,6 +71,8 @@ class EmpireAP {
       return true;
     if (!$this->ch)
       $this->ch = curl_init($this->endpoints["base"]);
+    else
+      curl_setopt($this->ch, CURLOPT_URL, $this->endpoints["base"]);
 
     // Initial request to pull CSRF token
     curl_setopt($this->ch, CURLOPT_HEADER, 1);
@@ -131,7 +133,6 @@ class EmpireAP {
 
     // Return
     $this->authenticated = true;
-    curl_close($this->ch);
     return true;
   }
 

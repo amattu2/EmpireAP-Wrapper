@@ -19,6 +19,8 @@ class EmpireAP {
     "base" => "https://www.empireap.com/Account/SignIn",
     "parts" => "https://www.empireap.com/Parts",
     "makers" => "https://empireap.com/Parts/_Makers",
+    "models" => "https://empireap.com/Parts/_Models",
+    "search_results" => "https://empireap.com/Parts/_SearchResults",
   ];
   private $csrf = [
     "cookie" => null,
@@ -146,6 +148,7 @@ class EmpireAP {
    *
    * @param int model year
    * @return array supported makes
+   * @throws TypeError
    * @throws InvalidLoginException
    * @throws InvalidArgumentException
    * @author Alec M. <https://amattu.com>
@@ -177,6 +180,58 @@ class EmpireAP {
     curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}; SessionId={$this->SessionId}");
     curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->build_query_string([
       "year" => $model_year,
+    ]));
+
+    // Check cURL Result
+    $result = curl_exec($this->ch);
+    if (curl_error($this->ch))
+      return [];
+
+    // Return makes
+    return $this->extract_form_select_options($result);
+  }
+
+  /**
+   * Fetch Models by Model Year and Model
+   *
+   * @param int model year
+   * @param string maker code
+   * @return array supported models
+   * @throws TypeError
+   * @throws InvalidLoginException
+   * @throws InvalidArgumentException
+   * @author Alec M. <https://amattu.com>
+   * @date 2021-08-15T09:false38:00-040
+   */
+  public function search_models(int $model_year, string $maker) : array
+  {
+    // Checks
+    if (!$this->login())
+      throw new InvalidLoginException("Unable to login to website. Check your credentials");
+    if (!$this->ch)
+      $this->ch = curl_init($this->endpoints["models"]);
+    else
+      curl_setopt($this->ch, CURLOPT_URL, $this->endpoints["models"]);
+    if ($model_year < $this->minimum_year || $model_year > (date("Y") + 2))
+      throw new InvalidArgumentException("Unsupported model year provided");
+    if (strlen($maker) <= 2)
+      throw new InvalidArgumentException("Invalid maker provided");
+
+    // Fetch Makes
+    curl_setopt($this->ch, CURLOPT_HEADER, 0);
+    curl_setopt($this->ch, CURLOPT_NOBODY, 0);
+    curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 0);
+    curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
+    curl_setopt($this->ch, CURLOPT_REFERER, $this->endpoints["parts"]);
+    curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($this->ch, CURLOPT_POST, 1);
+    curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}; SessionId={$this->SessionId}");
+    curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->build_query_string([
+      "year" => $model_year,
+      "makerCode" => $maker
     ]));
 
     // Check cURL Result

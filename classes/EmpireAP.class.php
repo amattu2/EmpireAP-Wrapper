@@ -23,6 +23,7 @@ class EmpireAP {
   private $ch = null;
   private $email = "";
   private $password = "";
+  private $SessionId = null;
   private $authenticated = false;
   private $REQUEST_UA = "Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.7.12) Gecko/20050915 Firefox/1.0.7";
   private $REQUEST_REFERER = "https://www.google.com";
@@ -109,9 +110,20 @@ class EmpireAP {
       "password" => $this->password,
       "__RequestVerificationToken" => $this->csrf['form']
     ]));
-    curl_exec($this->ch);
 
-    // Check Return Status
+    // Check cURL Result
+    $result = curl_exec($this->ch);
+    if (curl_error($this->ch))
+      return false;
+
+    // Extract Cookies
+    $cookies = $this->extract_cookies($result);
+    if (empty($cookies) || !isset($cookies["SessionId"]))
+      return false;
+    else
+      $this->SessionId = $cookies["SessionId"];
+
+    // Check Return Result
     if (curl_getinfo($this->ch, CURLINFO_HTTP_CODE) !== 302)
       return false;
     if (curl_getinfo($this->ch, CURLINFO_REDIRECT_URL) !== $this->endpoints["parts"])
@@ -139,6 +151,8 @@ class EmpireAP {
     if (!$this->csrf["cookie"])
       return false;
     if (!$this->csrf["form"])
+      return false;
+    if (!$this->SessionId)
       return false;
 
     // Default

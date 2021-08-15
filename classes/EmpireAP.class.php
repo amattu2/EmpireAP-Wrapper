@@ -13,7 +13,8 @@ namespace amattu;
 class EmpireAP {
 	// Variables
 	private $endpoints = [
-		"base" => "https://www.empireap.com/Account/SignIn"
+		"base" => "https://www.empireap.com/Account/SignIn",
+		"parts" => "https://www.empireap.com/Parts",
 	];
 	private $csrf = [
 		"cookie" => null,
@@ -47,7 +48,9 @@ class EmpireAP {
 			throw new InvalidArgumentException("Provide a valid account password");
 		}
 
-		// Setup cURL Handle
+		// Setup Variables
+		$this->email = $email;
+		$this->password = $password;
 		$this->ch = curl_init($this->endpoints["base"]);
 	}
 
@@ -72,11 +75,11 @@ class EmpireAP {
 		curl_setopt($this->ch, CURLOPT_HEADER, 1);
 		curl_setopt($this->ch, CURLOPT_NOBODY, 0);
 		curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
-		curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
 		curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($this->ch, CURLOPT_REFERER, $this->REQUEST_REFERER);
 		curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 0);
+		curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
+		curl_setopt($this->ch, CURLOPT_REFERER, $this->REQUEST_REFERER);
 
 		// Check cURL Result
 		$result = curl_exec($this->ch);
@@ -96,25 +99,27 @@ class EmpireAP {
 			return false;
 
 		// Perform actual login request
-		curl_setopt($this->ch, CURLOPT_HEADER, 0);
-		curl_setopt($this->ch, CURLOPT_NOBODY, 0);
-		curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
-		curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}");
-		curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
-		curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($this->ch, CURLOPT_REFERER, $this->REQUEST_REFERER);
-		curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
-		curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 0);
 		curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, "POST");
 		curl_setopt($this->ch, CURLOPT_POST, 1);
-		curl_setopt($this->ch, CURLOPT_POSTFIELDS, "rememberUsername=false&username={$this->email}&password={$this->password}&__RequestVerificationToken={$this->csrf[form]}");
-		$result = curl_exec($this->ch);
-		curl_close($this->ch);
+		curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}");
+		curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->build_query_string([
+			"redirectUrl" => "/Parts",
+			"rememberUsername" => "false",
+			"username" => $this->email,
+			"password" => $this->password,
+			"__RequestVerificationToken" => $this->csrf['form']
+		]));
+		curl_exec($this->ch);
 
-		/** TBD **/
-		echo $result;
+		// Check Return Status
+		if (curl_getinfo($this->ch, CURLINFO_HTTP_CODE) !== 302)
+			return false;
+		if (curl_getinfo($this->ch, CURLINFO_REDIRECT_URL) !== $this->endpoints["parts"])
+			return false;
 
 		// Return
+		$this->authenticated = true;
+		curl_close($this->ch);
 		return true;
 	}
 
@@ -194,5 +199,27 @@ class EmpireAP {
 
 		// Default
 		return "";
+	}
+
+	/**
+	 * Build a CURLOPT_POSTFIELDS valid query string
+	 *
+	 * @param array $data
+	 * @return string query string
+	 * @throws TypeError
+	 * @author Alec M. <https://amattu.com>
+	 * @date 2021-08-15T08:false23:false44-040
+	 */
+	private function build_query_string(array $data) : string
+	{
+		// Variables
+		$query_string = '';
+
+		// Build String
+		foreach($data as $key => $value)
+			$query_string .= "{$key}={$value}&";
+
+		// Return
+		return rtrim($query_string, '&');
 	}
 }

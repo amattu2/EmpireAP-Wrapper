@@ -152,7 +152,7 @@ class EmpireAP {
    * @throws InvalidLoginException
    * @throws InvalidArgumentException
    * @author Alec M. <https://amattu.com>
-   * @date 2021-08-15T09:03:false14-040
+   * @date 2021-08-15
    */
   public function search_makers(int $model_year) : array
   {
@@ -201,9 +201,9 @@ class EmpireAP {
    * @throws InvalidLoginException
    * @throws InvalidArgumentException
    * @author Alec M. <https://amattu.com>
-   * @date 2021-08-15T09:false38:00-040
+   * @date 2021-08-15
    */
-  public function search_models(int $model_year, string $maker) : array
+  public function search_models(int $model_year, string $maker_code) : array
   {
     // Checks
     if (!$this->login())
@@ -214,7 +214,7 @@ class EmpireAP {
       curl_setopt($this->ch, CURLOPT_URL, $this->endpoints["models"]);
     if ($model_year < $this->minimum_year || $model_year > (date("Y") + 2))
       throw new InvalidArgumentException("Unsupported model year provided");
-    if (strlen($maker) <= 2)
+    if (strlen($maker_code) <= 2)
       throw new InvalidArgumentException("Invalid maker provided");
 
     // Fetch Makes
@@ -231,7 +231,7 @@ class EmpireAP {
     curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}; SessionId={$this->SessionId}");
     curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->build_query_string([
       "year" => $model_year,
-      "makerCode" => $maker
+      "makerCode" => $maker_code
     ]));
 
     // Check cURL Result
@@ -239,8 +239,71 @@ class EmpireAP {
     if (curl_error($this->ch))
       return [];
 
-    // Return makes
+    // Return models
     return $this->extract_form_select_options($result);
+  }
+
+  /**
+   * Fetch parts by Year, Make, Model
+   *
+   * @param int model year
+   * @param string maker code
+   * @param int model id
+   * @return array <Note: string, Parts: array, Wheels: array>
+   * @throws TypeError
+   * @throws InvalidLoginException
+   * @throws InvalidArgumentException
+   * @author Alec M. <https://amattu.com>
+   * @date 2021-08-15
+   */
+  public function search_results(int $model_year, string $maker_code, int $model_id) : array
+  {
+     // Checks
+     if (!$this->login())
+       throw new InvalidLoginException("Unable to login to website. Check your credentials");
+     if (!$this->ch)
+       $this->ch = curl_init($this->endpoints["search_results"]);
+     else
+       curl_setopt($this->ch, CURLOPT_URL, $this->endpoints["search_results"]);
+     if ($model_year < $this->minimum_year || $model_year > (date("Y") + 2))
+       throw new InvalidArgumentException("Unsupported model year provided");
+     if (strlen($maker_code) <= 2)
+       throw new InvalidArgumentException("Invalid maker (manufacturer) code provided");
+     if ($model_id <= 0)
+       throw new InvalidArgumentException("Invalid model ID provided");
+
+     // Fetch Makes
+     curl_setopt($this->ch, CURLOPT_HEADER, 0);
+     curl_setopt($this->ch, CURLOPT_NOBODY, 0);
+     curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
+     curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+     curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
+     curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 0);
+     curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
+     curl_setopt($this->ch, CURLOPT_REFERER, $this->endpoints["parts"]);
+     curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, "POST");
+     curl_setopt($this->ch, CURLOPT_POST, 1);
+     curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}; SessionId={$this->SessionId}");
+     curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->build_query_string([
+       "year" => $model_year,
+       "makerCode" => $maker_code,
+       "makerName" => "NA",
+       "modelId" => $model_id,
+       "modelName" => "NA",
+       "logSearch" => true,
+     ]));
+
+     // Check cURL Result
+     $result = curl_exec($this->ch);
+     if (curl_error($this->ch))
+       return [];
+
+     // Return parsed result
+     return Array(
+      "Note" => "",
+      "Parts" => $this->extract_search_parts($result),
+      "Wheels" => $this->extract_search_wheels($result),
+     );
   }
 
   /**
@@ -330,7 +393,7 @@ class EmpireAP {
    * @return string query string
    * @throws TypeError
    * @author Alec M. <https://amattu.com>
-   * @date 2021-08-15T08:false23:false44-040
+   * @date 2021-08-15
    */
   private function build_query_string(array $data) : string
   {
@@ -381,5 +444,79 @@ class EmpireAP {
 
     // Default
     return $options;
+  }
+
+  /**
+   * Extract HTML listings for aftermarket parts
+   *
+   * @param string HTML body
+   * @return array parsed part listing
+   * @throws TypeError
+   * @author Alec M. <https://amattu.com>
+   * @date 2021-08-15
+   */
+  private function extract_search_parts(string $body) : array
+  {
+    // Disable errors
+    libxml_use_internal_errors(true);
+
+    // Load HTTP body
+    $document = new \DOMDocument();
+    $document->loadHTML($body);
+    $xp = new \DomXPath($document);
+    $parts = Array();
+
+    // Find Elements
+    if ($rows = $xp->query("//table[@id='table-replacement-parts']/tbody/tr"))
+      foreach ($rows as $row)
+        if ($children = $xp->query('td', $row))
+          $parts[] = Array(
+            "Description" => trim($children->item(1)->nodeValue),
+            "Quality" => trim($children->item(2)->nodeValue),
+            "List" => trim($children->item(3)->nodeValue),
+            "Cost" => trim($children->item(4)->nodeValue),
+            "OEM_Part_Number" => trim($children->item(5)->nodeValue),
+            "Part_Number" => trim($children->item(6)->nodeValue),
+          );
+
+    // Default
+    return $parts;
+  }
+
+  /**
+   * Extract HTML listings for OEM wheels
+   *
+   * @param string HTML body
+   * @return array parsed wheel listing
+   * @throws TypeError
+   * @author Alec M. <https://amattu.com>
+   * @date 2021-08-15
+   */
+  private function extract_search_wheels(string $body) : array
+  {
+    // Disable errors
+    libxml_use_internal_errors(true);
+
+    // Load HTTP body
+    $document = new \DOMDocument();
+    $document->loadHTML($body);
+    $xp = new \DomXPath($document);
+    $wheels = Array();
+
+    // Find Elements
+    if ($rows = $xp->query("//table[@id='table-replacement-wheels']/tbody/tr"))
+      foreach ($rows as $row)
+        if ($children = $xp->query('td', $row))
+          $wheels[] = Array(
+            "Description" => trim($children->item(1)->nodeValue),
+            "Quality" => trim($children->item(2)->nodeValue),
+            "List" => trim($children->item(3)->nodeValue),
+            "Cost" => trim($children->item(4)->nodeValue),
+            "OEM_Part_Number" => trim($children->item(5)->nodeValue),
+            "Part_Number" => trim($children->item(6)->nodeValue),
+          );
+
+    // Default
+    return $wheels;
   }
 }

@@ -67,7 +67,11 @@ class EmpireAP {
 
   /**
    * Force initiate a login request
-   * Not inherently required
+   *
+   * NOTE:
+   *   (1) This function does not need to
+   *   be called directly unless you need to
+   *   verify your credentials.
    *
    * @return bool login success
    * @throws None

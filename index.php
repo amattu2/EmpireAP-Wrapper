@@ -23,4 +23,9 @@ $wrapper = new amattu\EmpireAP((isset($_GET['email']) ? $_GET['email'] : "test@e
 //echo "<br>", "<pre>";
 //print_r($wrapper->search_results(2015, "TOYOTA", 2505));
 //echo "</pre>";
+
+// Example: recent vehicle searches
+//echo "<br>", "<pre>";
+//print_r($wrapper->search_history());
+//echo "</pre>";
 ?>

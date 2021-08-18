@@ -2,7 +2,6 @@
 This is a simple [Empire Auto Parts](https://empireap.com) digital catalog PHP wrapper. It provides easy functionality behind the authentication, catalog listing, and account orders website functionality. It should be noted, this wrapper is designed to work in place of the non-existent API, and acts as a traditional browser client. Use with caution; no authorization has been provided to use their website in this manner.
 
 # To-Do
-- https://empireap.com/Parts/SearchHistory
 - https://empireap.com/Orders
 
 # Usage
@@ -39,20 +38,20 @@ Array
 (
   [0] => Array
   (
-    [text] => Chevrolet-GMC
-    [value] => CHEVY
+    ["text"] => Chevrolet-GMC
+    ["value"] => CHEVY
   )
 
   [1] => Array
   (
-    [text] => Chrysler-Dodge-Plym
-    [value] => DODGE
+    ["text"] => Chrysler-Dodge-Plym
+    ["value"] => DODGE
   )
 
   [2] => Array
   (
-    [text] => Ford-Mercury
-    [value] => FORD
+    ["text"] => Ford-Mercury
+    ["value"] => FORD
   )
 
   ...
@@ -73,20 +72,20 @@ Array
 (
   [0] => Array
   (
-    [text] => 4Runner
-    [value] => 2297
+    ["text"] => 4Runner
+    ["value"] => 2297
   )
 
   [1] => Array
   (
-    [text] => Avalon
-    [value] => 2094
+    ["text"] => Avalon
+    ["value"] => 2094
   )
 
   [2] => Array
   (
-    [text] => Camry (Non-Hybrid)
-    [value] => 2505
+    ["text"] => Camry (Non-Hybrid)
+    ["value"] => 2505
   )
 
   ...
@@ -106,27 +105,27 @@ Successful return result
 
 Array
 (
-  [Note] => String
-  [Parts] => Array
+  ["Note"] => String
+  ["Parts"] => Array
   (
     [0] => Array
     (
-      [Description] => FRONT BUMPER COVER (PRIMED)
-      [Quality] => CAPA
-      [List] => $230.77
-      [Cost] => $173.00
-      [OEM_Part_Number] => 5211907912
-      [Part_Number] => T0169
+      ["Description"] => FRONT BUMPER COVER (PRIMED)
+      ["Quality"] => CAPA
+      ["List"] => $230.77
+      ["Cost"] => $173.00
+      ["OEM_Part_Number"] => 5211907912
+      ["Part_Number"] => T0169
     )
 
     [1] => Array
     (
-      [Description] => FRONT BUMPER COVER (PRIMED)
-      [Quality] =>
-      [List] => $207.69
-      [Cost] => $156.00
-      [OEM_Part_Number] => 5211907912
-      [Part_Number] => T6340
+      ["Description"] => FRONT BUMPER COVER (PRIMED)
+      ["Quality"] =>
+      ["List"] => $207.69
+      ["Cost"] => $156.00
+      ["OEM_Part_Number"] => 5211907912
+      ["Part_Number"] => T6340
     )
 
     ...
@@ -135,37 +134,67 @@ Array
   (
     [0] => Array
     (
-      [Description] => STEEL WHEEL (16X7, 20 HOLE, BLACK)
-      [Quality] => OE
-      [List] => $153.33
-      [Cost] => $115.00
-      [OEM_Part_Number] => 4261106B10
-      [Part_Number] => XX103
+      ["Description"] => STEEL WHEEL (16X7, 20 HOLE, BLACK)
+      ["Quality"] => OE
+      ["List"] => $153.33
+      ["Cost"] => $115.00
+      ["OEM_Part_Number"] => 4261106B10
+      ["Part_Number"] => XX103
     )
 
     [1] => Array
     (
-      [Description] => WHEEL COVER (16", 10 SPOKE, SILVER)
-      [Quality] => OE Recon
-      [List] => $96.00
-      [Cost] => $72.00
-      [OEM_Part_Number] => 4260206120
-      [Part_Number] => ZX540
+      ["Description"] => WHEEL COVER (16", 10 SPOKE, SILVER)
+      ["Quality"] => OE Recon
+      ["List"] => $96.00
+      ["Cost"] => $72.00
+      ["OEM_Part_Number"] => 4260206120
+      ["Part_Number"] => ZX540
     )
 
     [2] => Array
     (
-      [Description] => WHEEL COVER (16", 10 SPOKE, SILVER)
-      [Quality] => OE
-      [List] => $74.67
-      [Cost] => $56.00
-      [OEM_Part_Number] => 4260206120
-      [Part_Number] => ZX533
+      ["Description"] => WHEEL COVER (16", 10 SPOKE, SILVER)
+      ["Quality"] => OE
+      ["List"] => $74.67
+      ["Cost"] => $56.00
+      ["OEM_Part_Number"] => 4260206120
+      ["Part_Number"] => ZX533
     )
 
     ...
   )
 )
+```
+
+## Recent Searches
+This pulls the listing of recent vehicle searches.
+
+```PHP
+$wrapper->search_history();
+```
+
+Successful return result
+```JSON
+Array
+(
+  [0] => Array
+  (
+    ["model_year"] => 2013
+    ["maker_code"] => TOYOTA
+    ["maker"] => Toyota
+    ["model_id"] => 1922
+    ["model"] => Corolla Sedan
+  )
+
+  [1] => Array
+  (
+    ["model_year"] => 2018
+    ["maker_code"] => TOYOTA
+    ["maker"] => Toyota
+    ["model_id"] => 2297
+    ["model"] => 4Runner
+  )
 ```
 
 # Requirements & Dependencies

@@ -21,6 +21,7 @@ class EmpireAP {
     "makers" => "https://empireap.com/Parts/_Makers",
     "models" => "https://empireap.com/Parts/_Models",
     "search_results" => "https://empireap.com/Parts/_SearchResults",
+    "search_history" => "https://empireap.com/Parts/SearchHistory",
   ];
   private $csrf = [
     "cookie" => null,
@@ -307,6 +308,44 @@ class EmpireAP {
   }
 
   /**
+   * Fetch recent website searches
+   *
+   * @return array recent searchs
+   * @throws InvalidLoginException
+   * @author Alec M. <https://amattu.com>
+   * @date 2021-08-18T09:false51:false11-040
+   */
+  public function search_history() : array
+  {
+     // Checks
+     if (!$this->login())
+       throw new InvalidLoginException("Unable to login to website. Check your credentials");
+     if (!$this->ch)
+       $this->ch = curl_init($this->endpoints["search_history"]);
+     else
+       curl_setopt($this->ch, CURLOPT_URL, $this->endpoints["search_history"]);
+
+     // Fetch Search Results
+     curl_setopt($this->ch, CURLOPT_HEADER, 0);
+     curl_setopt($this->ch, CURLOPT_NOBODY, 0);
+     curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
+     curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+     curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
+     curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 0);
+     curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
+     curl_setopt($this->ch, CURLOPT_REFERER, $this->endpoints["parts"]);
+     curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}; SessionId={$this->SessionId}");
+
+     // Check cURL Result
+     $result = curl_exec($this->ch);
+     if (curl_error($this->ch))
+       return [];
+
+     // Return
+     return $this->extract_recent_vehicles($result);
+  }
+
+  /**
    * Return current user authentication status
    *
    * @return bool authenticated
@@ -518,5 +557,40 @@ class EmpireAP {
 
     // Default
     return $wheels;
+  }
+
+  /**
+   * Extract Recent Vehicles from HTML table
+   *
+   * @param string HTML body
+   * @return array recent vehicles
+   * @throws None
+   * @author Alec M. <https://amattu.com>
+   * @date 2021-08-18
+   */
+  public function extract_recent_vehicles(string $body) : array
+  {
+    // Disable errors
+    libxml_use_internal_errors(true);
+
+    // Load HTTP body
+    $document = new \DOMDocument();
+    $document->loadHTML($body);
+    $xp = new \DomXPath($document);
+    $vehicles = Array();
+
+    // Find Elements
+    if ($rows = $xp->query("//table/tbody/tr"))
+      foreach ($rows as $row)
+        $vehicles[] = Array(
+          "model_year" => $row->getAttribute("data-year"),
+          "maker_code" => $row->getAttribute("data-maker-code"),
+          "maker" => $row->getAttribute("data-maker-name"),
+          "model_id" => $row->getAttribute("data-model-id"),
+          "model" => $row->getAttribute("data-model-name")
+        );
+
+    // Return
+    return $vehicles;
   }
 }

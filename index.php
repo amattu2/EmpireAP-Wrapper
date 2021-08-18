@@ -28,4 +28,18 @@ $wrapper = new amattu\EmpireAP((isset($_GET['email']) ? $_GET['email'] : "test@e
 //echo "<br>", "<pre>";
 //print_r($wrapper->search_history());
 //echo "</pre>";
+
+// Example: get invoice PDF
+/*
+if ($pdf = $wrapper->get_invoice(30846609)) {
+  header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+  header("Cache-Control: no-cache");
+  header("Pragma: no-cache");
+  header("Content-type:application/pdf");
+  header("Content-Disposition:inline;filename='Invoice.pdf'");
+  echo $pdf;
+} else {
+  echo "PDF Download Failed";
+}
+*/
 ?>

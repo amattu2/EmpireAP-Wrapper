@@ -22,6 +22,8 @@ class EmpireAP {
     "models" => "https://empireap.com/Parts/_Models",
     "search_results" => "https://empireap.com/Parts/_SearchResults",
     "search_history" => "https://empireap.com/Parts/SearchHistory",
+    "invoice" => "https://empireap.com/Invoices/%s/%s",
+    "orders" => "https://empireap.com/Orders",
   ];
   private $csrf = [
     "cookie" => null,
@@ -345,6 +347,55 @@ class EmpireAP {
     return $this->extract_recent_vehicles($result);
   }
 
+  /**
+   * Get a Empire Auto Parts invoice by Invoice Number
+   *
+   * NOTE:
+   *   (1) Invoices aren't limited by company
+   *   I.E. you can "accidentially" fetch invoices
+   *   for companies other than your own
+   *   (2) This function either returns a PDF
+   *   stringified or null if the PDF is not available.
+   *
+   * @param int invoice number
+   * @return mixed Base64 PDF | null
+   * @throws TypeError
+   * @throws InvalidLoginException
+   * @author Alec M. <https://amattu.com>
+   * @date 2021-08-18
+   */
+  public function get_invoice(int $invoice_number)
+  {
+    // Checks
+    if (!$this->login())
+      throw new InvalidLoginException("Unable to login to website. Check your credentials");
+    if ($invoice_number <= 0)
+      throw new InvalidArgumentException("Invoice numbers must be greater than 0");
+    if (!$this->ch)
+      $this->ch = curl_init(sprintf($this->endpoints["invoice"], "Download", $invoice_number));
+    else
+      curl_setopt($this->ch, CURLOPT_URL, sprintf($this->endpoints["invoice"], "Download", $invoice_number));
+
+    // Fetch PDF
+    curl_setopt($this->ch, CURLOPT_HEADER, 0);
+    curl_setopt($this->ch, CURLOPT_NOBODY, 0);
+    curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 0);
+    curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
+    curl_setopt($this->ch, CURLOPT_REFERER, $this->endpoints["orders"]);
+    curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}; SessionId={$this->SessionId}");
+
+    // Check cURL Result
+    $result = curl_exec($this->ch);
+    if (curl_error($this->ch))
+      return null;
+    if (curl_getinfo($this->ch, CURLINFO_HTTP_CODE) !== 200)
+      return null;
+
+    // Return
+    return $result ?: null;
   }
 
   /**

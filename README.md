@@ -197,6 +197,30 @@ Array
   )
 ```
 
+## Invoice
+Retrieve a Empire AP receipt/invoice by invoice number. Please see the PHPDoc for important details about this function.
+
+```PHP
+$PDF = $wrapper->get_invoice(30846609);
+```
+
+Eg.
+```PHP
+if ($pdf = $wrapper->get_invoice(30846609)) {
+  // No Caching
+  header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+  header("Cache-Control: no-cache");
+  header("Pragma: no-cache");
+
+  // PDF Output
+  header("Content-type:application/pdf");
+  header("Content-Disposition:inline;filename='Invoice.pdf'");
+
+  // Output function fetched PDF
+  echo $pdf;
+}
+```
+
 # Requirements & Dependencies
 - PHP
 - cURL (Library)

@@ -130,7 +130,7 @@ Array
 
     ...
   )
-  [Wheels] => Array
+  ["Wheels"] => Array
   (
     [0] => Array
     (
@@ -144,7 +144,7 @@ Array
 
     [1] => Array
     (
-      ["Description"] => WHEEL COVER (16", 10 SPOKE, SILVER)
+      ["Description"] => WHEEL COVER (16, 10 SPOKE, SILVER)
       ["Quality"] => OE Recon
       ["List"] => $96.00
       ["Cost"] => $72.00
@@ -154,7 +154,7 @@ Array
 
     [2] => Array
     (
-      ["Description"] => WHEEL COVER (16", 10 SPOKE, SILVER)
+      ["Description"] => WHEEL COVER (16, 10 SPOKE, SILVER)
       ["Quality"] => OE
       ["List"] => $74.67
       ["Cost"] => $56.00

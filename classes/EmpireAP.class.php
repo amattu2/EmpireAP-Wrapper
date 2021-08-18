@@ -259,52 +259,52 @@ class EmpireAP {
    */
   public function search_results(int $model_year, string $maker_code, int $model_id) : array
   {
-     // Checks
-     if (!$this->login())
-       throw new InvalidLoginException("Unable to login to website. Check your credentials");
-     if (!$this->ch)
-       $this->ch = curl_init($this->endpoints["search_results"]);
-     else
-       curl_setopt($this->ch, CURLOPT_URL, $this->endpoints["search_results"]);
-     if ($model_year < $this->minimum_year || $model_year > (date("Y") + 2))
-       throw new InvalidArgumentException("Unsupported model year provided");
-     if (strlen($maker_code) <= 2)
-       throw new InvalidArgumentException("Invalid maker (manufacturer) code provided");
-     if ($model_id <= 0)
-       throw new InvalidArgumentException("Invalid model ID provided");
+    // Checks
+    if (!$this->login())
+      throw new InvalidLoginException("Unable to login to website. Check your credentials");
+    if (!$this->ch)
+      $this->ch = curl_init($this->endpoints["search_results"]);
+    else
+      curl_setopt($this->ch, CURLOPT_URL, $this->endpoints["search_results"]);
+    if ($model_year < $this->minimum_year || $model_year > (date("Y") + 2))
+      throw new InvalidArgumentException("Unsupported model year provided");
+    if (strlen($maker_code) <= 2)
+      throw new InvalidArgumentException("Invalid maker (manufacturer) code provided");
+    if ($model_id <= 0)
+      throw new InvalidArgumentException("Invalid model ID provided");
 
-     // Fetch Makes
-     curl_setopt($this->ch, CURLOPT_HEADER, 0);
-     curl_setopt($this->ch, CURLOPT_NOBODY, 0);
-     curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
-     curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-     curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
-     curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 0);
-     curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
-     curl_setopt($this->ch, CURLOPT_REFERER, $this->endpoints["parts"]);
-     curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, "POST");
-     curl_setopt($this->ch, CURLOPT_POST, 1);
-     curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}; SessionId={$this->SessionId}");
-     curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->build_query_string([
-       "year" => $model_year,
-       "makerCode" => $maker_code,
-       "makerName" => "NA",
-       "modelId" => $model_id,
-       "modelName" => "NA",
-       "logSearch" => true,
-     ]));
+    // Fetch Makes
+    curl_setopt($this->ch, CURLOPT_HEADER, 0);
+    curl_setopt($this->ch, CURLOPT_NOBODY, 0);
+    curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 0);
+    curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
+    curl_setopt($this->ch, CURLOPT_REFERER, $this->endpoints["parts"]);
+    curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($this->ch, CURLOPT_POST, 1);
+    curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}; SessionId={$this->SessionId}");
+    curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->build_query_string([
+      "year" => $model_year,
+      "makerCode" => $maker_code,
+      "makerName" => "NA",
+      "modelId" => $model_id,
+      "modelName" => "NA",
+      "logSearch" => true,
+    ]));
 
-     // Check cURL Result
-     $result = curl_exec($this->ch);
-     if (curl_error($this->ch))
-       return [];
+    // Check cURL Result
+    $result = curl_exec($this->ch);
+    if (curl_error($this->ch))
+      return [];
 
-     // Return parsed result
-     return Array(
-      "Note" => "",
-      "Parts" => $this->extract_search_parts($result),
-      "Wheels" => $this->extract_search_wheels($result),
-     );
+    // Return parsed result
+    return Array(
+    "Note" => "",
+    "Parts" => $this->extract_search_parts($result),
+    "Wheels" => $this->extract_search_wheels($result),
+    );
   }
 
   /**
@@ -317,32 +317,34 @@ class EmpireAP {
    */
   public function search_history() : array
   {
-     // Checks
-     if (!$this->login())
-       throw new InvalidLoginException("Unable to login to website. Check your credentials");
-     if (!$this->ch)
-       $this->ch = curl_init($this->endpoints["search_history"]);
-     else
-       curl_setopt($this->ch, CURLOPT_URL, $this->endpoints["search_history"]);
+    // Checks
+    if (!$this->login())
+      throw new InvalidLoginException("Unable to login to website. Check your credentials");
+    if (!$this->ch)
+      $this->ch = curl_init($this->endpoints["search_history"]);
+    else
+      curl_setopt($this->ch, CURLOPT_URL, $this->endpoints["search_history"]);
 
-     // Fetch Search Results
-     curl_setopt($this->ch, CURLOPT_HEADER, 0);
-     curl_setopt($this->ch, CURLOPT_NOBODY, 0);
-     curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
-     curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
-     curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
-     curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 0);
-     curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
-     curl_setopt($this->ch, CURLOPT_REFERER, $this->endpoints["parts"]);
-     curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}; SessionId={$this->SessionId}");
+    // Fetch Search Results
+    curl_setopt($this->ch, CURLOPT_HEADER, 0);
+    curl_setopt($this->ch, CURLOPT_NOBODY, 0);
+    curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 0);
+    curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
+    curl_setopt($this->ch, CURLOPT_REFERER, $this->endpoints["parts"]);
+    curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}; SessionId={$this->SessionId}");
 
-     // Check cURL Result
-     $result = curl_exec($this->ch);
-     if (curl_error($this->ch))
-       return [];
+    // Check cURL Result
+    $result = curl_exec($this->ch);
+    if (curl_error($this->ch))
+      return [];
 
-     // Return
-     return $this->extract_recent_vehicles($result);
+    // Return
+    return $this->extract_recent_vehicles($result);
+  }
+
   }
 
   /**

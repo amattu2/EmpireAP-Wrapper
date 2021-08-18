@@ -568,7 +568,7 @@ class EmpireAP {
    * @author Alec M. <https://amattu.com>
    * @date 2021-08-18
    */
-  public function extract_recent_vehicles(string $body) : array
+  private function extract_recent_vehicles(string $body) : array
   {
     // Disable errors
     libxml_use_internal_errors(true);

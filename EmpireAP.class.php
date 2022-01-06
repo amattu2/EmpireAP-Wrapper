@@ -26,9 +26,17 @@ namespace amattu;
 // Exception Classes
 class InvalidLoginException extends \Exception {}
 
-// Empire Auto Parts Website Wrapper
+/**
+ * An Empire Auto Parts API Wrapper Class
+ *
+ * See README.md for more information.
+ */
 class EmpireAP {
-  // Variables
+  /**
+   * A list of API endpoints
+   *
+   * @var array
+   */
   private $endpoints = [
     "base" => "https://www.empireap.com/Account/SignIn",
     "parts" => "https://www.empireap.com/Parts",
@@ -40,18 +48,78 @@ class EmpireAP {
     "orders" => "https://empireap.com/Orders",
     "item_transactions" => "https://www.empireap.com/Orders/ItemTransactions/%s?itemNumber=NA&status=NA",
   ];
+
+  /**
+   * Current Session Attributes
+   *
+   * @var array
+   */
   private $csrf = [
     "cookie" => null,
     "form" => null
   ];
+
+  /**
+   * Current cURL Handle
+   *
+   * @var Resource
+   */
   private $ch = null;
+
+  /**
+   * Current User Account Email
+   *
+   * @var string
+   */
   private $email = "";
+
+  /**
+   * Current User Account Password
+   *
+   * @var string
+   */
   private $password = "";
+
+  /**
+   * Current Session ID
+   *
+   * @var string
+   */
   private $SessionId = null;
+
+  /**
+   * Current Authentication Status
+   *
+   * @var string
+   */
   private $authenticated = false;
+
+  /**
+   * Emulated Request User-Agent
+   *
+   * @var string
+   */
   private $REQUEST_UA = "Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.7.12) Gecko/20050915 Firefox/1.0.7";
+
+  /**
+   * Emulated Request Referrer
+   *
+   * @var string
+   */
   private $REQUEST_REFERER = "https://www.google.com";
+
+  /**
+   * Request Validation Token
+   *
+   * @var string
+   */
   private $RVT = "__RequestVerificationToken";
+
+  /**
+   * Minimum Supported Year
+   *
+   * @var integer
+   */
   private $minimum_year = 1930;
 
   /**

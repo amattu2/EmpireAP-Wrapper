@@ -94,3 +94,14 @@ if ($example === 6 && $pdf = $wrapper->get_invoice(30846609)) {
   header("Content-Disposition:inline;filename='Invoice.pdf'");
   echo $pdf;
 }
+
+/**
+ * Example 7: Get a Invoice Item's Transaction History
+ * This will fetch any transaction history for any item, regardless of whether or not the logged-in account owns it
+ */
+if ($example === 7) {
+  echo "Example 7: Get a Invoice Item's Transaction History<br>";
+  echo "<pre>";
+  print_r($wrapper->item_transactions(12452558));
+  echo "</pre>";
+}

@@ -221,6 +221,43 @@ if ($pdf = $wrapper->get_invoice(30846609)) {
 }
 ```
 
+## Order Item Transactions
+Pull all delievery status transactional events by a particular order item number. Similar to `get_invoice`, this will return data irrespective of whether or not the invoice item belongs to the logged-in user.
+
+```PHP
+$wrapper->item_transactions(12452558)
+```
+
+Eg.
+```JSON
+Array
+(
+  [0] => Array
+  (
+    [status] => Delivered
+    [date] => 04/13/2021 11:46 AM
+  )
+
+  [1] => Array
+  (
+    [status] => Out for delivery
+    [date] => 04/13/2021 08:20 AM
+  )
+
+  [2] => Array
+  (
+    [status] => Loaded for delivery
+    [date] => 04/13/2021 07:53 AM
+  )
+
+  [3] => Array
+  (
+    [status] => Loaded onto shuttle
+    [date] => 04/12/2021 06:14 PM
+  )
+)
+```
+
 # Requirements & Dependencies
 - PHP
 - cURL (Library)

@@ -38,6 +38,7 @@ class EmpireAP {
     "search_history" => "https://empireap.com/Parts/SearchHistory",
     "invoice" => "https://empireap.com/Invoices/%s/%s",
     "orders" => "https://empireap.com/Orders",
+    "item_transactions" => "https://www.empireap.com/Orders/ItemTransactions/%s?itemNumber=NA&status=NA",
   ];
   private $csrf = [
     "cookie" => null,
@@ -325,6 +326,42 @@ class EmpireAP {
     "Parts" => $this->extract_search_parts($result),
     "Wheels" => $this->extract_search_wheels($result),
     );
+  }
+
+  /**
+   * Fetch an order item transactional history status
+   *
+   * @param integer $label_num Order item number (label_num)
+   * @return array
+   */
+  public function item_transactions(int $item_num) : array
+  {
+    // Checks
+    if (!$this->login())
+      throw new InvalidLoginException("Unable to login to website. Check your credentials");
+    if (!$this->ch)
+      $this->ch = curl_init(sprintf($this->endpoints["item_transactions"], $item_num));
+    else
+      curl_setopt($this->ch, CURLOPT_URL, sprintf($this->endpoints["item_transactions"], $item_num));
+
+    // Fetch Makes
+    curl_setopt($this->ch, CURLOPT_HEADER, 0);
+    curl_setopt($this->ch, CURLOPT_NOBODY, 0);
+    curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 0);
+    curl_setopt($this->ch, CURLOPT_USERAGENT, $this->REQUEST_UA);
+    curl_setopt($this->ch, CURLOPT_REFERER, $this->endpoints["orders"]);
+    curl_setopt($this->ch, CURLOPT_COOKIE, "__RequestVerificationToken={$this->csrf["cookie"]}; SessionId={$this->SessionId}");
+
+    // Check cURL Result
+    $result = curl_exec($this->ch);
+    if (curl_error($this->ch))
+      return [];
+
+    // Return makes
+    return $this->extract_item_transactions($result);
   }
 
   /**
@@ -663,5 +700,38 @@ class EmpireAP {
 
     // Return
     return $vehicles;
+  }
+
+    /**
+   * Extract Order Item Transactions
+   *
+   * @param string HTML body
+   * @return array order item transactions
+   * @throws None
+   * @author Alec M. <https://amattu.com>
+   * @date 2022-01-06
+   */
+  private function extract_item_transactions(string $body) : array
+  {
+    // Disable errors
+    libxml_use_internal_errors(true);
+
+    // Load HTTP body
+    $document = new \DOMDocument();
+    $document->loadHTML($body);
+    $xp = new \DomXPath($document);
+    $txns = Array();
+
+    // Find Elements
+    if ($rows = $xp->query("//div//table/tbody/tr"))
+      foreach ($rows as $row)
+        if ($children = $xp->query('td', $row))
+          $txns[] = Array(
+            "status" => trim($children->item(0)->nodeValue),
+            "date" => trim($children->item(1)->nodeValue)
+          );
+
+    // Return
+    return $txns;
   }
 }
